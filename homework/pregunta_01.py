@@ -71,3 +71,59 @@ def pregunta_01():
 
 
     """
+    import os
+    import zipfile
+    import csv
+    import pandas as pd
+
+ # Rutas de los archivos
+    zip_path = "files/input.zip"
+    input_dir = "files/input"
+    output_dir = "files/output"
+    train_csv = os.path.join(output_dir, "train_dataset.csv")
+    test_csv = os.path.join(output_dir, "test_dataset.csv")
+
+    # Crear carpeta de salida si no existe
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Descomprimir el archivo ZIP
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall("files")
+
+    def process_folder(folder_path, output_csv):
+        """
+        Procesa una carpeta para generar un archivo CSV.
+
+        Args:
+            folder_path (str): Ruta de la carpeta (train o test).
+            output_csv (str): Ruta del archivo CSV de salida.
+        """
+        rows = []
+
+        # Recorrer subcarpetas (negative, positive, neutral)
+        for target in os.listdir(folder_path):
+            target_path = os.path.join(folder_path, target)
+
+            if os.path.isdir(target_path):
+                for file_name in os.listdir(target_path):
+                    file_path = os.path.join(target_path, file_name)
+
+                    # Leer el contenido del archivo de texto
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        phrase = file.read().strip()
+
+                    # Añadir fila al CSV
+                    rows.append({"phrase": phrase, "target": target})
+
+        # Escribir el archivo CSV
+        with open(output_csv, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=["phrase", "target"])
+            writer.writeheader()
+            writer.writerows(rows)
+
+    # Procesar las carpetas train y test
+    process_folder(os.path.join(input_dir, "train"), train_csv)
+    process_folder(os.path.join(input_dir, "test"), test_csv)
+
+# Llamar a la función
+pregunta_01()
